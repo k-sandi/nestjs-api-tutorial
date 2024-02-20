@@ -3,16 +3,18 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { AuthDto } from "./dto";
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private jwt: JwtService,
+        private config: ConfigService
+    ) { }
 
     async signup(dto: AuthDto) {
-        // const resp = {
-        //     msg: 'I have signed up'
-        // }
-
         // Generate the password hash
         const hash = await argon.hash(dto.password)
 
@@ -30,10 +32,12 @@ export class AuthService {
                 // }
             })
 
-            delete user.hash
+            // delete user.hash
+            // delete user.hash // remove hash (password hashed) object from the respond
 
             // Return the saved user
-            return user;
+            // return user;
+            return this.signToken(user.id, user.email)
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 if (error.code === 'P2002') { // the code for unique field
@@ -66,8 +70,32 @@ export class AuthService {
         }
 
         // send back the user
-        delete user.hash // remove hash (password hashed) object from the respond
-        return user;
+        // delete user.hash // remove hash (password hashed) object from the respond
+        return this.signToken(user.id, user.email);
+    }
+
+    async signToken(
+        userId: number,
+        email: string
+    ): Promise<{ access_token: string }> {
+        const payload = {
+            sub: userId, // sub is stanar for unique data
+            email
+        }
+
+        const secret_key = this.config.get('JWT_SECRET')
+
+        const token = await this.jwt.signAsync(
+            payload, 
+            {
+                expiresIn: '15m',
+                secret: secret_key
+            }
+        );
+
+        return {
+            access_token: token,
+        }
     }
 }
 
