@@ -30,6 +30,17 @@
 
 ```bash
 $ yarn install
+
+#if prisma not working, run this command:
+$ npm i -g prisma
+
+#if dotenv-client not working, run this command:
+$ npm i -g dotenv-client
+```
+
+## Prepare Running
+```bash
+$ yarn run db:dev:restart
 ```
 
 ## Running the app
@@ -45,6 +56,11 @@ $ yarn run start:dev
 $ yarn run start:prod
 ```
 
+## Prepare Test
+```bash
+$ yarn run pretest:e2e
+```
+
 ## Test
 
 ```bash
@@ -53,6 +69,9 @@ $ yarn run test
 
 # e2e tests
 $ yarn run test:e2e
+
+# e2e tests wtach mode
+$ yarn run test:e2e:dev
 
 # test coverage
 $ yarn run test:cov
